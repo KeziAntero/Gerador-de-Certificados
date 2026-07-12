@@ -1,0 +1,23 @@
+{
+  "name": "workspace",
+  "version": "0.0.0",
+  "author": "Kezia Antero",
+  "license": "MIT",
+  "packageManager": "pnpm@11.4.0",
+  "scripts": {
+    "preinstall": "node -e \"const fs=require('fs');['package-lock.json','yarn.lock'].forEach((f)=>{try{fs.unlinkSync(f)}catch{}});const ua=process.env.npm_config_user_agent||'';if(ua&& !ua.startsWith('pnpm/')){console.error('Use pnpm instead');process.exit(1);}\"",
+    "dev:web": "pnpm --filter @workspace/certificados run dev",
+    "build:web": "pnpm --filter @workspace/certificados run build",
+    "preview:web": "pnpm --filter @workspace/certificados run serve",
+    "typecheck:web": "pnpm --filter @workspace/certificados run typecheck",
+    "vercel-build": "corepack pnpm --filter @workspace/certificados run build",
+    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+  },
+  "private": true,
+  "devDependencies": {
+    "prettier": "^3.8.3",
+    "typescript": "~5.9.3"
+  }
+}

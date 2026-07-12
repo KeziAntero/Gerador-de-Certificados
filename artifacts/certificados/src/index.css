@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+:root {
+  --app-font-sans: 'Libre Franklin', system-ui, -apple-system, sans-serif;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--app-font-sans);
+  background: #f5f5f7;
+  color: #111;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Certificate fixed-size canvas */
+.cert {
+  position: relative;
+  width: 1024px;
+  height: 600px;
+  background-color: #4be3c8;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  font-family: 'Libre Franklin', sans-serif;
+  color: #1a1a1a;
+  overflow: hidden;
+}
+
+.cert-body {
+  position: absolute;
+  top: 205px;
+  left: 218px;
+  right: 218px;
+  text-align: center;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 500;
+  color: #1d1d1d;
+  letter-spacing: 0.1px;
+}
+
+.cert-signatures {
+  position: absolute;
+  left: 100px;
+  right: 100px;
+  bottom: 118px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.cert-signatures--count-1 {
+  gap: 0;
+}
+
+.cert-signatures--count-1 .cert-signature-item {
+  max-width: 340px;
+}
+
+.cert-signatures--count-2 .cert-signature-item {
+  max-width: 300px;
+}
+
+.cert-signatures--count-3 .cert-signature-item {
+  max-width: 240px;
+}
+
+.cert-signatures--count-4 .cert-signature-item,
+.cert-signatures--count-many .cert-signature-item {
+  max-width: 200px;
+}
+
+.cert-signatures--count-many {
+  flex-wrap: wrap;
+  row-gap: 16px;
+  column-gap: 24px;
+}
+
+.cert-signature-item {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+}
+
+.cert-signature-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1d1d1d;
+  line-height: 1.35;
+}
+
+.cert-signature-role {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1d1d1d;
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+.cert-signatures--count-3 .cert-signature-name,
+.cert-signatures--count-4 .cert-signature-name,
+.cert-signatures--count-many .cert-signature-name {
+  font-size: 13px;
+}
+
+.cert-signatures--count-4 .cert-signature-role,
+.cert-signatures--count-many .cert-signature-role {
+  font-size: 12px;
+}
+
+.cert-logos-row {
+  position: absolute;
+  left: 80px;
+  right: 80px;
+  bottom: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  z-index: 2;
+  transform: translateX(-20px);
+}
+
+.cert-logos-row--count-1 {
+  gap: 0;
+  transform: translateX(-40px);
+}
+
+.cert-logos-row--count-1 .cert-logo-item {
+  max-width: 600px;
+}
+
+.cert-logos-row--count-2 .cert-logo-item {
+  max-width: 280px;
+}
+
+.cert-logos-row--count-3 .cert-logo-item {
+  max-width: 200px;
+}
+
+.cert-logos-row--count-4 .cert-logo-item,
+.cert-logos-row--count-many .cert-logo-item {
+  max-width: 150px;
+}
+
+.cert-logos-row--count-many {
+  flex-wrap: wrap;
+  row-gap: 12px;
+}
+
+.cert-logo-item {
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+  height: auto;
+  max-height: 48px;
+  object-fit: contain;
+  pointer-events: none;
+  display: block;
+}
+
+.cert strong {
+  font-weight: 700;
+}
+
+.app-credits {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 4px 24px 12px;
+  color: #9ca3af;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.app-credits img {
+  height: 12px;
+  width: auto;
+  opacity: 0.65;
+  display: block;
+}
