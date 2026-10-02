@@ -799,7 +799,6 @@ export default function App() {
 
       <footer className="app-credits">
         <img src="/ka-credits.png" alt="" aria-hidden="true" />
-        <span>Kezia Antero</span>
       </footer>
 
       <div
