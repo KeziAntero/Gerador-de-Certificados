@@ -135,20 +135,28 @@ body {
 }
 
 .cert-logos-row--count-1 .cert-logo-item {
-  max-width: 600px;
+  flex-basis: 600px;
 }
 
 .cert-logos-row--count-2 .cert-logo-item {
-  max-width: 280px;
+  flex-basis: 280px;
+}
+
+.cert-logos-row--count-2 {
+  gap: 8px;
 }
 
 .cert-logos-row--count-3 .cert-logo-item {
-  max-width: 200px;
+  flex-basis: 200px;
+}
+
+.cert-logos-row--count-3 {
+  gap: 8px;
 }
 
 .cert-logos-row--count-4 .cert-logo-item,
 .cert-logos-row--count-many .cert-logo-item {
-  max-width: 150px;
+  flex-basis: 150px;
 }
 
 .cert-logos-row--count-many {
@@ -157,15 +165,22 @@ body {
 }
 
 .cert-logo-item {
-  flex: 0 1 auto;
+  flex: 0 1 150px;
   min-width: 0;
-  width: auto;
   max-width: 100%;
-  height: auto;
-  max-height: 48px;
-  object-fit: contain;
-  pointer-events: none;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cert-logo-image {
   display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  pointer-events: none;
 }
 
 .cert strong {

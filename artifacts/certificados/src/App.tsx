@@ -137,7 +137,9 @@ function Certificate({
       {logos.length > 0 && (
         <div className={`cert-logos-row ${logosCountClass(logos.length)}`}>
           {logos.map((logo) => (
-            <img key={logo.id} className="cert-logo-item" src={logo.url} alt="" />
+            <div key={logo.id} className="cert-logo-item">
+              <img className="cert-logo-image" src={logo.url} alt="" />
+            </div>
           ))}
         </div>
       )}
