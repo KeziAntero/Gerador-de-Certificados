@@ -61,6 +61,98 @@ function preloadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
+type PdfLogoLayer = {
+  dataUrl: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type CertificateCanvas = {
+  canvas: HTMLCanvasElement;
+  logoLayers: PdfLogoLayer[];
+};
+
+async function renderCertificateCanvas(
+  element: HTMLDivElement,
+  scale: number,
+  backgroundColor: string | null,
+): Promise<CertificateCanvas> {
+  const canvas = await html2canvas(element, {
+    scale,
+    useCORS: true,
+    backgroundColor,
+    logging: false,
+    imageTimeout: 15000,
+    onclone: (clonedDocument) => {
+      clonedDocument
+        .querySelectorAll<HTMLImageElement>(".cert-logo-image")
+        .forEach((logo) => {
+          logo.style.visibility = "hidden";
+        });
+    },
+  });
+  const certificateBounds = element.getBoundingClientRect();
+  const pixelScale = canvas.width / certificateBounds.width;
+  const logoLayers = await Promise.all(
+    Array.from(element.querySelectorAll<HTMLImageElement>(".cert-logo-image")).map(
+      async (logo) => {
+        const frame = logo.parentElement;
+        if (!frame) {
+          throw new Error("Não foi possível localizar o espaço reservado da logo.");
+        }
+        if (!logo.complete || logo.naturalWidth === 0 || logo.naturalHeight === 0) {
+          throw new Error("Não foi possível carregar uma das logos do certificado.");
+        }
+
+        const frameBounds = frame.getBoundingClientRect();
+        const ratio = Math.min(
+          frameBounds.width / logo.naturalWidth,
+          frameBounds.height / logo.naturalHeight,
+          1,
+        );
+        const width = logo.naturalWidth * ratio;
+        const height = logo.naturalHeight * ratio;
+        const x =
+          (frameBounds.left -
+            certificateBounds.left +
+            (frameBounds.width - width) / 2) *
+          pixelScale;
+        const y =
+          (frameBounds.top -
+            certificateBounds.top +
+            (frameBounds.height - height) / 2) *
+          pixelScale;
+        const imageCanvas = document.createElement("canvas");
+        imageCanvas.width = logo.naturalWidth;
+        imageCanvas.height = logo.naturalHeight;
+        const imageContext = imageCanvas.getContext("2d");
+        if (!imageContext) {
+          throw new Error("Não foi possível preparar a logo para o PDF.");
+        }
+        imageContext.drawImage(logo, 0, 0);
+
+        return {
+          dataUrl: imageCanvas.toDataURL("image/png"),
+          x,
+          y,
+          width: width * pixelScale,
+          height: height * pixelScale,
+        };
+      },
+    ),
+  );
+
+  return { canvas, logoLayers };
+}
+
+function addLogoLayers(pdf: jsPDF, logoLayers: PdfLogoLayer[]) {
+  logoLayers.forEach(({ dataUrl, x, y, width, height }) => {
+    pdf.addImage(dataUrl, "PNG", x, y, width, height, undefined, "FAST");
+  });
+}
+
 function lookup(row: Row, key: string): string {
   const k = key.toLowerCase();
   for (const rk of Object.keys(row)) {
@@ -137,7 +229,9 @@ function Certificate({
       {logos.length > 0 && (
         <div className={`cert-logos-row ${logosCountClass(logos.length)}`}>
           {logos.map((logo) => (
-            <img key={logo.id} className="cert-logo-item" src={logo.url} alt="" />
+            <div key={logo.id} className="cert-logo-item">
+              <img className="cert-logo-image" src={logo.url} alt="" />
+            </div>
           ))}
         </div>
       )}
@@ -246,13 +340,7 @@ export default function App() {
 
   const generatePdf = useCallback(async (row: Row, name: string): Promise<jsPDF> => {
     const el = renderRef.current!;
-    const canvas = await html2canvas(el, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: null,
-      logging: false,
-      imageTimeout: 15000,
-    });
+    const { canvas, logoLayers } = await renderCertificateCanvas(el, 3, null);
     const pdf = new jsPDF({
       orientation: "landscape",
       unit: "px",
@@ -270,6 +358,7 @@ export default function App() {
       undefined,
       "FAST",
     );
+    addLogoLayers(pdf, logoLayers);
     void name;
     void row;
     return pdf;
@@ -324,13 +413,7 @@ export default function App() {
         setBusy({ active: true, current: i + 1, total: rows.length, label: "Gerando PDF combinado…" });
         await new Promise((r) => setTimeout(r, 80));
         const el = renderRef.current!;
-        const canvas = await html2canvas(el, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: "#ffffff",
-          logging: false,
-          imageTimeout: 15000,
-        });
+        const { canvas, logoLayers } = await renderCertificateCanvas(el, 2, "#ffffff");
         const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
         if (!merged) {
           merged = new jsPDF({
@@ -344,6 +427,7 @@ export default function App() {
           merged.addPage([canvas.width, canvas.height], "landscape");
         }
         merged.addImage(dataUrl, "JPEG", 0, 0, canvas.width, canvas.height, undefined, "FAST");
+        addLogoLayers(merged, logoLayers);
         // Free canvas memory between iterations
         canvas.width = 0;
         canvas.height = 0;
@@ -799,7 +883,6 @@ export default function App() {
 
       <footer className="app-credits">
         <img src="/ka-credits.png" alt="" aria-hidden="true" />
-        <span>Kezia Antero</span>
       </footer>
 
       <div
