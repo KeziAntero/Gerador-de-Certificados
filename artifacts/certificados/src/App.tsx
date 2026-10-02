@@ -61,6 +61,62 @@ function preloadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
+async function renderCertificateCanvas(
+  element: HTMLDivElement,
+  scale: number,
+  backgroundColor: string | null,
+): Promise<HTMLCanvasElement> {
+  const canvas = await html2canvas(element, {
+    scale,
+    useCORS: true,
+    backgroundColor,
+    logging: false,
+    imageTimeout: 15000,
+    onclone: (clonedDocument) => {
+      clonedDocument
+        .querySelectorAll<HTMLImageElement>(".cert-logo-image")
+        .forEach((logo) => {
+          logo.style.visibility = "hidden";
+        });
+    },
+  });
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Não foi possível acessar o canvas para renderizar as logos.");
+  }
+
+  const certificateBounds = element.getBoundingClientRect();
+  const pixelScale = canvas.width / certificateBounds.width;
+  element.querySelectorAll<HTMLImageElement>(".cert-logo-image").forEach((logo) => {
+    const frame = logo.parentElement;
+    if (!frame) {
+      throw new Error("Não foi possível localizar o espaço reservado da logo.");
+    }
+    if (!logo.complete || logo.naturalWidth === 0 || logo.naturalHeight === 0) {
+      throw new Error("Não foi possível carregar uma das logos do certificado.");
+    }
+
+    const frameBounds = frame.getBoundingClientRect();
+    const ratio = Math.min(
+      frameBounds.width / logo.naturalWidth,
+      frameBounds.height / logo.naturalHeight,
+      1,
+    );
+    const width = logo.naturalWidth * ratio;
+    const height = logo.naturalHeight * ratio;
+    const x =
+      (frameBounds.left - certificateBounds.left + (frameBounds.width - width) / 2) *
+      pixelScale;
+    const y =
+      (frameBounds.top - certificateBounds.top + (frameBounds.height - height) / 2) *
+      pixelScale;
+
+    context.drawImage(logo, x, y, width * pixelScale, height * pixelScale);
+  });
+
+  return canvas;
+}
+
 function lookup(row: Row, key: string): string {
   const k = key.toLowerCase();
   for (const rk of Object.keys(row)) {
@@ -248,13 +304,7 @@ export default function App() {
 
   const generatePdf = useCallback(async (row: Row, name: string): Promise<jsPDF> => {
     const el = renderRef.current!;
-    const canvas = await html2canvas(el, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: null,
-      logging: false,
-      imageTimeout: 15000,
-    });
+    const canvas = await renderCertificateCanvas(el, 3, null);
     const pdf = new jsPDF({
       orientation: "landscape",
       unit: "px",
@@ -326,13 +376,7 @@ export default function App() {
         setBusy({ active: true, current: i + 1, total: rows.length, label: "Gerando PDF combinado…" });
         await new Promise((r) => setTimeout(r, 80));
         const el = renderRef.current!;
-        const canvas = await html2canvas(el, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: "#ffffff",
-          logging: false,
-          imageTimeout: 15000,
-        });
+        const canvas = await renderCertificateCanvas(el, 2, "#ffffff");
         const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
         if (!merged) {
           merged = new jsPDF({
